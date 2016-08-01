@@ -1,0 +1,405 @@
+<!DOCTYPE html><html lang="en"><head><title>Composite reducer tool</title><link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous"><link href="./ghpage.css" rel="stylesheet"><script src="https://use.fontawesome.com/9237579915.js"></script><meta charset="UTF-8"></head><body><div id="root"><div class="nav nav-inline navbar-light bg-faded"><nav class="container navbar-nav"><a class="nav-link" href="#installation">Install</a><a class="nav-link" href="#usage">Usage</a><a class="nav-link" href="#native">Native</a><a class="nav-link" href="#validation">Customization</a><a class="nav-link" href="examples/web/">Examples</a><a class="nav-link github" href="https://github.com/gtg092x/reducify" target="_blank"><span class="fa fa-github"></span>Github</a></nav></div><div class="masthead"><h1 class="container"><span class="text">Put this in your pipe and reduce it</span></h1><div id="example"></div></div><div class="container" id="readme"><h1 id="reducify">Redux Pipeline</h1>
+<p>Merge <a href="https://github.com/reactjs/redux">Redux</a> reducers together to make one composite reducer.</p>
+<p><a href="http://code.mediadrake.com/reducify">http://code.mediadrake.com/reducify</a></p>
+<h2 id="installation">Installation</h2>
+<pre><code>% npm install reducify
+</code></pre><h2 id="usage">Usage</h2>
+<h3 id="reducify-combines-reducers-into-a-single-manageable-sequence">Redux pipeline combines reducers into a single, manageable sequence</h3>
+<p>Tired of massive, unwieldly switch statements? Wish you could break up reducers into re-usable and configurable parts?</p>
+<blockquote>
+<p>Yes, this problem is literally ruining my life.</p>
+</blockquote>
+<p>We thought so. With reducify you can chain reducers together and get back to worrying about application logic instead of how tired you are from javascript fatigue.</p>
+<h4 id="mystore-js">MyStore.js</h4>
+<pre><code class="lang-js">import { createStore } from &#39;redux&#39;;
+import pipeline from &#39;reducify&#39;;
+
+function addReducer(state = 0, action) {
+    switch(action.type) {
+        case &#39;ADD&#39;:
+            return state + action.data;
+        default:
+            return state;
+    }
+}
+
+function subtractReducer(state = 0, action) {
+    switch(action.type) {
+        case &#39;SUBTRACT&#39;:
+            return state - action.data;
+        default:
+            return state;
+    }
+}
+
+export default createStore(
+  pipeline(addReducer, subtractReducer)
+);
+</code></pre>
+<p>Then just call actions like normal!</p>
+<h4 id="myactions-js">MyActions.js</h4>
+<pre><code class="lang-js">import store from &#39;./MyStore&#39;
+
+const {dispatch, subscribe, getState} = store;
+
+subscribe(val =&gt; console.log(&#39;State is:&#39;, getState()));
+
+dispatch({
+    type: &#39;ADD&#39;,
+    data: 2
+});
+// State is: 2
+
+dispatch({
+    type: &#39;SUBTRACT&#39;,
+    data: 10
+});
+// State is: -8
+</code></pre>
+<h2 id="advanced-features">Advanced Features</h2>
+<blockquote>
+<p>That&#39;s boring, can&#39;t this thing do anything that&#39;s cool?</p>
+</blockquote>
+<p>It can! Let&#39;s check out some more advanced stuff.</p>
+<h3 id="namespacing">Namespacing</h3>
+<p>You might want to apply a reducer to a single state key. Well that&#39;s easy as pie.</p>
+<pre><code class="lang-js">import { createStore } from &#39;redux&#39;;
+import pipeline from &#39;reducify&#39;;
+
+// If you&#39;re going to namespace, make sure your state is an object!
+function rootReducer(state = {myNumber: 0, myBoolean: false}, action) {
+    return state;
+}
+
+function mathReducer(state = 0, action) {
+    switch(action.type) {
+        case &quot;ADD&quot;:
+            return state + action.data;
+        default:
+            return state;
+    }
+}
+
+function toggleReducer(state = false, action) {
+    switch(action.type) {
+        case &quot;TOGGLE&quot;:
+            return !state;
+        default:
+            return state;
+    }    
+}
+
+const store = createStore(
+  pipeline(
+    rootReducer,    
+    {select: &#39;myNumber&#39;, reducer: mathReducer}, // identical to [&#39;myNumber&#39;, mathReducer]
+    {select: &#39;myBoolean&#39;, reducer: toggleReducer}
+  )
+);
+
+store.dispatch({
+   type: &#39;ADD&#39;,
+   data: 10
+});
+
+store.dispatch({
+   type: &#39;TOGGLE&#39;
+});
+
+// State is: {myNumber: 10, myBoolean: true}
+</code></pre>
+<p>Alternatively, you can pass in select and merge methods. The following would be identical to the pipeline above:</p>
+<pre><code class="lang-js">export default createStore(
+  pipeline(
+    rootReducer,    
+    {select: state =&gt; state.myBoolean, merge: (result, state) =&gt; ({...state, myBoolean: result}), reducer: toggleReducer}, // alternatively you can call [state =&gt; state.myBoolean, (result, state) =&gt; ({...state, myBoolean: result}), toggleReducer]
+    {select: state =&gt; state.myNumber, merge: (result, state) =&gt; ({...state, myNumber: result}), reducer: mathReducer}
+  )
+);
+</code></pre>
+<h3 id="defaults">Defaults</h3>
+<p>If you&#39;re heavy into namespacing, defaults are a pain - just pass it in instead of a reducer.</p>
+<pre><code class="lang-js">import { createStore } from &#39;redux&#39;;
+import pipeline from &#39;reducify&#39;;
+
+function mathReducer(state = 0, action) {
+    // ...
+}
+
+function toggleReducer(state = false, action) {
+    // ...
+}
+
+const store = createStore(
+  pipeline(
+    {foo: &#39;bar&#39;}, // Just pass in an object - this will be your default state
+    {select: &#39;myNumber&#39;, reducer: mathReducer},
+    {select: &#39;myBoolean&#39;, reducer: toggleReducer}
+  )
+);
+
+store.dispatch({
+   type: &#39;ADD&#39;,
+   data: 10
+});
+
+store.dispatch({
+   type: &#39;TOGGLE&#39;
+});
+
+// State is: {myNumber: 10, myBoolean: true, foo: &#39;bar&#39;}
+</code></pre>
+<h3 id="nesting">Nesting</h3>
+<p>Because we&#39;re just making reducers, you&#39;re free to do pipe all the way down!</p>
+<pre><code class="lang-js">import { createStore } from &#39;redux&#39;;
+import pipeline from &#39;reducify&#39;;
+
+function mathReducer(state = 0, action) {
+    // ...
+}
+
+function toggleReducer(state = false, action) {
+    // ...
+}
+
+const store = createStore(
+  pipeline(
+    {data: {}, otherData: {}},
+    {select: &#39;data&#39;, reducer: pipeline(
+        {select: &#39;myNumber&#39;, reducer: mathReducer},
+        {select: &#39;myBoolean&#39;, reducer: toggleReducer}
+    )},
+    // you can use the same shortcuts when you nest
+    // this is pretty much the same thing
+    [&#39;otherData&#39;, pipeline(
+        [&#39;myNumber&#39;, mathReducer],
+        [&#39;myBoolean&#39;, toggleReducer],
+    )]
+  )
+);
+
+store.dispatch({
+   type: &#39;ADD&#39;,
+   data: 10
+});
+
+store.dispatch({
+   type: &#39;TOGGLE&#39;
+});
+
+/* 
+    State is:
+    {
+        data: {myNumber: 10, myBoolean: true},
+        otherData: {myNumber: 10, myBoolean: true}
+    }
+*/
+</code></pre>
+<h3 id="configurable-reducers">Configurable Reducers</h3>
+<p>Not something you absolutely need this package for, but it makes this pattern a whole lot easier.</p>
+<pre><code class="lang-js">import { createStore } from &#39;redux&#39;;
+import pipeline from &#39;reducify&#39;;
+
+function genericMathReducer({add, subtract}) {
+    return (state = 0, action) =&gt; {
+        switch(action.type) {
+            case add:
+                return state + action.data;
+            case subtract:
+                return state - action.data;
+            default:
+                return state;
+        }        
+    };    
+}
+
+const store = createStore(
+  pipeline(
+    {myNumber: 0, myOtherNumber: 0}, 
+    [&#39;myNumber&#39;, genericMathReducer({add: &#39;ADD_NUMBER&#39;, subtract: &#39;SUBTRACT_NUMBER&#39;})],
+    [&#39;myOtherNumber&#39;, genericMathReducer({add: &#39;ADD_OTHER_NUMBER&#39;, subtract: &#39;SUBTRACT_OTHER_NUMBER&#39;})]
+  )
+);
+
+store.dispatch({
+   type: &#39;ADD_NUMBER&#39;,
+   data: 10
+});
+
+store.dispatch({
+   type: &#39;SUBTRACT_OTHER_NUMBER&#39;,
+   data: 5
+});
+
+// State is: {myNumber: 10, myOtherNumber: -5}
+</code></pre>
+<h3 id="interrupt">Interrupt</h3>
+<p>You might want to stop the flow of the reducer chain. This is especially true if you create a generic configurable reducer but want to surpress some actions. There&#39;s actually a way to do this.</p>
+<pre><code class="lang-js">import pipeline from &#39;reducify&#39;;
+
+// Math reducer would come from a library or something
+function mathReducer(state = 0, action) {
+    switch(action.type) {
+        case &quot;ADD&quot;:
+            return state + action.data;
+        case &quot;SUBTRACT&quot;:
+            return state - action.data;
+        default:
+            return state;
+    }
+}
+
+function blockSubtract(state = 0, action, end) {
+    switch(action.type) {        
+        case &quot;SUBTRACT&quot;:
+            // Notice we&#39;re passing state to the end method
+            return end(state);
+        default:
+            return state;
+    }
+}
+
+const store = createStore(
+  pipeline(
+    blockSubtract, 
+    mathReducer
+  )
+);
+
+store.dispatch({
+   type: &#39;ADD&#39;,
+   data: 10
+});
+
+// This gets blocked
+store.dispatch({
+   type: &#39;SUBTRACT&#39;,
+   data: 5
+});
+
+// State is: 10
+</code></pre>
+<p>Order matters! If you put an interrupting reducer last, it won&#39;t change anything because we&#39;re doing them in order.</p>
+<p>Right now end is just a killswitch. If there&#39;s a need for finer controls with it. File an issue.</p>
+<h2 id="api">API</h2>
+<h3 id="pipeline">pipeline</h3>
+<pre><code class="lang-js">import pipeline from &#39;reducify&#39;;
+pipeline([steps ...]);
+</code></pre>
+<p>There&#39;s only one function, but it&#39;s got a few different ways to send args in. Let&#39;s look at them all.</p>
+<h4 id="functions">Functions</h4>
+<pre><code class="lang-js">pipeline([&lt;Function&gt;...]);
+</code></pre>
+<pre><code class="lang-js">import pipeline from &#39;reducify&#39;;
+
+function reducer1(state = 0, action) {
+    // ...
+}
+
+function reducer2(state = 0, action) {
+    // ...
+}
+
+export default createStore(
+  pipeline(reducer1, reducer2)
+);
+// State is: Number
+</code></pre>
+<p>Just take any regular old reducer and pass it in. You can do one reducer or you can do 100.</p>
+<h4 id="object-configs">Object Configs</h4>
+<pre><code class="lang-js">pipeline([{select&lt;string&gt;, reducer&lt;Function&gt;}...]);
+// or
+pipeline([{select&lt;Function&gt;, merge&lt;Function&gt;, reducer&lt;Function&gt;}...]);
+// don&#39;t be afraid to mix them together either
+pipeline({select&lt;Function&gt;, merge&lt;Function&gt;, reducer&lt;Function&gt;}, {select&lt;string&gt;, reducer&lt;Function&gt;}, &lt;Function&gt;);
+</code></pre>
+<pre><code class="lang-js">import pipeline from &#39;reducify&#39;;
+
+function rootReducer(state = {}, action) {
+    return state;
+}
+
+function reducer1(state = 0, action) {
+    // ...
+}
+
+function reducer2(state = 0, action) {
+    // ...
+}
+
+export default createStore(
+  pipeline(
+    rootReducer,
+    {select: &#39;paramOne&#39; ,reducer: reducer1}, 
+    {select: state =&gt; state.paramTwo, merge: (result, state) =&gt; ({...state, paramTwo: result}), reducer: reducer2}
+  )
+);
+// State is: {paramOne&lt;Number&gt;, paramTwo&lt;Number&gt;}
+</code></pre>
+<p>If your reducer is changing keys on an object, make sure you have a root reducer or a default value! Look at the <code>select</code> example above if this seems crazy.</p>
+<h4 id="arrays">Arrays</h4>
+<pre><code class="lang-js">pipeline([[&lt;string&gt;, &lt;Function&gt;]...]); // identical to {select&lt;string&gt;, reducer&lt;Function&gt;}
+// or
+pipeline([[&lt;Function&gt;, &lt;Function&gt;, &lt;Function&gt;]...]); // identical to {select&lt;Function&gt;, merge&lt;Function&gt;, reducer&lt;Function&gt;}
+// you can mix these together too
+</code></pre>
+<pre><code class="lang-js">import pipeline from &#39;reducify&#39;;
+
+function rootReducer(state = {}, action) {
+    return state;
+}
+
+function reducer1(state = 0, action) {
+    // ...
+}
+
+function reducer2(state = 0, action) {
+    // ...
+}
+
+export default createStore(
+  pipeline(
+    rootReducer,
+    [&#39;paramOne&#39;, reducer1], 
+    [state =&gt; state.paramTwo, (result, state) =&gt; ({...state, paramTwo: result}), reducer: reducer2]
+  )
+);
+// State is: {paramOne&lt;Number&gt;, paramTwo&lt;Number&gt;}
+</code></pre>
+<p>This really just maps the array to the configs above. It gets pretty useful if you&#39;re nesting reducers.</p>
+<h4 id="defaults">Defaults</h4>
+<pre><code class="lang-js">pipeline([&lt;Object&gt;...]); // identical to (state = &lt;Object&gt;) =&gt; state
+</code></pre>
+<p>Adding that root reducer just for a default seemed kind of excessive, so if you pass in an object that doesn&#39;t match a config signature, we&#39;ll use it as a default.</p>
+<pre><code class="lang-js">import pipeline from &#39;reducify&#39;;
+
+function reducer1(state = 0, action) {
+    // ...
+}
+
+function reducer2(state = 0, action) {
+    // ...
+}
+
+export default createStore(
+  pipeline(
+    {foo: &#39;bar&#39;},
+    [&#39;paramOne&#39;, reducer1], 
+    [state =&gt; state.paramTwo, (result, state) =&gt; ({...state, paramTwo: result}), reducer: reducer2]
+  )
+);
+// State is: {paramOne&lt;Number&gt;, paramTwo&lt;Number&gt;, foo: &#39;bar&#39;}
+</code></pre>
+<p>Of course, if you decide to have a reducer with default values that include a string named <code>select</code> and a function named <code>reducer</code>, this obviously won&#39;t work. But let&#39;s be honest, that sounds like a silly thing to do. </p>
+<p>If you find yourself in that situation, just use a root reducer that sets those defaults instead - more boilerplate for you.</p>
+<h2 id="native">Native</h2>
+<h3 id="this-works-with-react-native-too">This works with React Native too</h3>
+<p>Nothing special - use it like any other redux package. Check the examples if you don&#39;t believe me.</p>
+<h2 id="combine-stores">Combine Stores</h2>
+<blockquote>
+<p>Do I have to do anything special to use <code>combineStores</code>?</p>
+</blockquote>
+<p>No - these are just reducers after all.</p>
+<h2 id="credits">Credits</h2>
+<p>Redux Pipeline is free software under the MIT license. It was created in sunny Santa Monica by <a href="http://www.mediadrake.com">Matthew Drake</a>.</p>
+</div></div><script src="./examples/web/js/ghpage.js"></script><script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/js/bootstrap.min.js" integrity="sha384-vZ2WRJMwsjRMW/8U7i6PWi6AlO1L79snBrmgiDpgIWJ82z8eA5lenwvxbMV1PAh7" crossorigin="anonymous"></script><script>$('a[href="http://code.mediadrake.com/reducify"]').remove();</script></body></html>
