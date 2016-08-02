@@ -1,5 +1,4 @@
 # Reducify [![Build Status](https://travis-ci.org/gtg092x/reducify.svg?branch=master)](https://travis-ci.org/gtg092x/reducify)
-================
 
 Make [Redux][] reducers with less effort.
 
