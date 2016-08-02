@@ -107,15 +107,43 @@ Arrays are deconstructed with the following signature:
 
 Some examples:
 
-`[10, myReducerFunction]` === `{defaultsTo: 10, reducer: myReducerFunction}`
+```js
 
-`[{myCount: 10}, 'myCount', myReducerFunction]` === `{defaultsTo: {myCount: 10}, select: 'myCount', reducer: myReducerFunction}`
+// No Select
 
-`[{myCount: 10}, state => state.myCount, (result, state) => {...state, myCount: result}, myReducerFunction]` 
+[10, myReducerFunction] 
 
-is the same as:
+// Same as:
+{defaultsTo: 10, reducer: myReducerFunction}
 
-`{defaultsTo: {myCount: 10}, select: state => state.myCount, merge: (result, state) => {...state, myCount: result}, reducer: myReducerFunction}`
+
+// Key Select
+
+[{myCount: 10}, 'myCount', myReducerFunction]  
+
+// Same as:
+{defaultsTo: {myCount: 10}, select: 'myCount', reducer: myReducerFunction}
+
+
+// Long form select
+
+[
+    {myCount: 10}, 
+    state => state.myCount, 
+    (result, state) => {...state, myCount: result}, 
+    myReducerFunction
+]
+
+// Same as:
+{
+    defaultsTo: {myCount: 10}, 
+    select: state => state.myCount, 
+    merge: (result, state) => {...state, myCount: result}, 
+    reducer: myReducerFunction
+}
+
+
+```
 
 
 ## Configuration Sugar

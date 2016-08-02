@@ -80,11 +80,40 @@ createStore(reducify(myArrayConfig));
 <p>Arrays are deconstructed with the following signature:</p>
 <p><code>[defaultsTo, [select, merge], reducerAndActions]</code></p>
 <p>Some examples:</p>
-<p><code>[10, myReducerFunction]</code> === <code>{defaultsTo: 10, reducer: myReducerFunction}</code></p>
-<p><code>[{myCount: 10}, &#39;myCount&#39;, myReducerFunction]</code> === <code>{defaultsTo: {myCount: 10}, select: &#39;myCount&#39;, reducer: myReducerFunction}</code></p>
-<p><code>[{myCount: 10}, state =&gt; state.myCount, (result, state) =&gt; {...state, myCount: result}, myReducerFunction]</code> </p>
-<p>is the same as:</p>
-<p><code>{defaultsTo: {myCount: 10}, select: state =&gt; state.myCount, merge: (result, state) =&gt; {...state, myCount: result}, reducer: myReducerFunction}</code></p>
+<pre><code class="lang-js">
+// No Select
+
+[10, myReducerFunction] 
+
+// Same as:
+{defaultsTo: 10, reducer: myReducerFunction}
+
+
+// Key Select
+
+[{myCount: 10}, &#39;myCount&#39;, myReducerFunction]  
+
+// Same as:
+{defaultsTo: {myCount: 10}, select: &#39;myCount&#39;, reducer: myReducerFunction}
+
+
+// Long form select
+
+[
+    {myCount: 10}, 
+    state =&gt; state.myCount, 
+    (result, state) =&gt; {...state, myCount: result}, 
+    myReducerFunction
+]
+
+// Same as:
+{
+    defaultsTo: {myCount: 10}, 
+    select: state =&gt; state.myCount, 
+    merge: (result, state) =&gt; {...state, myCount: result}, 
+    reducer: myReducerFunction
+}
+</code></pre>
 <h2 id="configuration-sugar">Configuration Sugar</h2>
 <p>Because we&#39;re opening the door on configuration, we get the ability to add in some user-directed magic that solves common redux boilerplate.</p>
 <h3 id="action-methods">Action Methods</h3>
