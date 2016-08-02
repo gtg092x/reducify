@@ -463,6 +463,9 @@ body {
   margin-left: auto;
   margin-right: auto;
 }
+.masthead .container pre code .token.operator {
+  background: transparent;
+}
 pre {
   white-space: pre-wrap;
 }
