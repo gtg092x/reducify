@@ -412,7 +412,7 @@ body {
   text-align: center;
   height: 40vh;
   margin-bottom: 40px;
-  min-height: 300px;
+  min-height: 400px;
   background-color: #333444;
   background: -webkit-gradient(linear, left top, left bottom, from(#333444), to(#1d1e27));
   background: -webkit-linear-gradient(top, #333444, #1d1e27);
