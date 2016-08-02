@@ -1,3 +1,163 @@
+.gradient (@startColor: #eee, @endColor: white) {
+  background-color: @startColor;
+  background: -webkit-gradient(linear, left top, left bottom, from(@startColor), to(@endColor));
+  background: -webkit-linear-gradient(top, @startColor, @endColor);
+  background: -moz-linear-gradient(top, @startColor, @endColor);
+  background: -ms-linear-gradient(top, @startColor, @endColor);
+  background: -o-linear-gradient(top, @startColor, @endColor);
+}
+
+// --------------------------------------------------
+// Flexbox LESS mixins
+// The spec: http://www.w3.org/TR/css3-flexbox
+// --------------------------------------------------
+
+// Flexbox display
+// flex or inline-flex
+.flex-display(@display: flex) {
+  display: ~"-webkit-@{display}";
+  display: ~"-ms-@{display}box"; // IE10 uses -ms-flexbox
+  display: ~"-ms-@{display}"; // IE11
+  display: @display;
+}
+
+// The 'flex' shorthand
+// - applies to: flex items
+// <positive-number>, initial, auto, or none
+.flex(@columns: initial) {
+  -webkit-flex: @columns;
+  -ms-flex: @columns;
+  flex: @columns;
+}
+
+// Flex Flow Direction
+// - applies to: flex containers
+// row | row-reverse | column | column-reverse
+.flex-direction(@direction: row) {
+  -webkit-flex-direction: @direction;
+  -ms-flex-direction: @direction;
+  flex-direction: @direction;
+}
+
+// Flex Line Wrapping
+// - applies to: flex containers
+// nowrap | wrap | wrap-reverse
+.flex-wrap(@wrap: nowrap) {
+  -webkit-flex-wrap: @wrap;
+  -ms-flex-wrap: @wrap;
+  flex-wrap: @wrap;
+}
+
+// Flex Direction and Wrap
+// - applies to: flex containers
+// <flex-direction> || <flex-wrap>
+.flex-flow(@flow) {
+  -webkit-flex-flow: @flow;
+  -ms-flex-flow: @flow;
+  flex-flow: @flow;
+}
+
+// Display Order
+// - applies to: flex items
+// <integer>
+.flex-order(@order: 0) {
+  -webkit-order: @order;
+  -ms-order: @order;
+  order: @order;
+}
+
+// Flex grow factor
+// - applies to: flex items
+// <number>
+.flex-grow(@grow: 0) {
+  -webkit-flex-grow: @grow;
+  -ms-flex-grow: @grow;
+  flex-grow: @grow;
+}
+
+// Flex shrink
+// - applies to: flex item shrink factor
+// <number>
+.flex-shrink(@shrink: 1) {
+  -webkit-flex-shrink: @shrink;
+  -ms-flex-shrink: @shrink;
+  flex-shrink: @shrink;
+}
+
+// Flex basis
+// - the initial main size of the flex item
+// - applies to: flex itemsnitial main size of the flex item
+// <width>
+.flex-basis(@width: auto) {
+  -webkit-flex-basis: @width;
+  -ms-flex-basis: @width;
+  flex-basis: @width;
+}
+
+// Axis Alignment
+// - applies to: flex containers
+// flex-start | flex-end | center | space-between | space-around
+.justify-content(@justify: flex-start) {
+  -webkit-justify-content: @justify;
+  -ms-justify-content: @justify;
+  justify-content: @justify;
+}
+
+// Packing Flex Lines
+// - applies to: multi-line flex containers
+// flex-start | flex-end | center | space-between | space-around | stretch
+.align-content(@align: stretch) {
+  -webkit-align-content: @align;
+  -ms-align-content: @align;
+  align-content: @align;
+}
+
+// Cross-axis Alignment
+// - applies to: flex containers
+// flex-start | flex-end | center | baseline | stretch
+.align-items(@align: stretch) {
+  -webkit-align-items: @align;
+  -ms-align-items: @align;
+  align-items: @align;
+}
+
+// Cross-axis Alignment
+// - applies to: flex items
+// auto | flex-start | flex-end | center | baseline | stretch
+.align-self(@align: auto) {
+  -webkit-align-self: @align;
+  -ms-align-self: @align;
+  align-self: @align;
+}
+
+.transform(...){
+  -webkit-transform: @arguments;
+  -moz-transform: @arguments;
+  -ms-transform: @arguments;
+  -o-transform: @arguments;
+  transform: @arguments;
+}
+
+.transform-origin(...){
+  -webkit-transform-origin: @arguments;
+  -moz-transform-origin: @arguments;
+  -ms-transform-origin: @arguments;
+  -o-transform-origin: @arguments;
+  transform-origin: @arguments;
+}
+
+.keyframes(@name; @arguments) {
+  @-moz-keyframes @name { @arguments(); }
+  @-webkit-keyframes @name { @arguments(); }
+  @keyframes @name { @arguments(); }
+}
+
+.animation (@name) {
+  -webkit-animation: @name;
+  -moz-animation:    @name;
+  -ms-animation:     @name;
+}
+
 .ghpage(@maincolor, @altcolor) {
   .hero {
     background-color: @maincolor;
@@ -5,4 +165,155 @@
   body {
     background-color: @altcolor;
   }
+
+  .keyframes(fly-into-sun;{
+    0% { .transform(translateX(-100%)); opacity: 0;}
+    12% { .transform(translateX(0%)); opacity: 1;}
+    20% {opacity: 1;}
+    25% { .transform(translateX(100%)); opacity: 0;}
+    100% { opacity: 0;}
+  });
+
+  .keyframes(spin;{
+    0% { .transform(rotate(0deg));}
+    25% { .transform(rotate(90deg));}
+    50% { .transform(rotate(180deg));}
+    75% { .transform(rotate(270deg));}
+    100% { .transform(rotate(360deg));}
+  });
+
+  .keyframes(woo;{
+    0% { .transform(rotate(45deg));}
+    40% { .transform(rotate(135deg));}
+    100% { .transform(rotate(135deg));}
+  });
+
+  .keyframes(woo-alt;{
+    0% { .transform(rotate(315deg));}
+    40% { .transform(rotate(235deg));}
+    100% { .transform(rotate(235deg));}
+  });
+
+  .keyframes(fade-in;{
+    0% { opacity: 0;}
+    50% { opacity: 0;}
+    100% { opacity: 1;}
+  });
+
+
+  .navbar-light .navbar-nav .nav-link {
+    color: fade(black, 87%);
+  }
+
+  .navbar-nav {
+    vertical-align: middle;
+  }
+
+  .navbar-nav .nav-link {
+    vertical-align: middle;
+    display: inline-block;
+    float: none;
+    &.github {
+      float: right;
+      position: relative;
+      top: 0px;
+      .fa {
+        position: relative;
+        left: -4px;
+      }
+    }
+  }
+  .navbar-brand {
+    float: none;
+  }
+
+  @bg-color: @maincolor;
+  .masthead {
+    text-align: center;
+    height: 40vh;
+    margin-bottom: 40px;
+    min-height: 300px;
+    background-color: @bg-color;
+    .gradient(@bg-color, darken(@bg-color, 10%));
+
+    @text-color: fade(contrast(@bg-color), 87%);
+    color: @text-color;
+
+
+    .container {
+      height: 100%;
+      .flex-display();
+      .flex-direction(column);
+      .justify-content(center);
+      .align-items(center);
+
+      .mast-card {
+        display: inline-block;
+        border: solid 4px @text-color;
+        border-radius: 10px;
+      }
+
+      .text {
+        padding: 15px;
+        display: inline-block;
+        & + pre {
+          margin-top: 0;
+        }
+      }
+
+      pre {
+        background-color: @text-color;
+        color: @maincolor;
+        padding: 16px;
+        margin-top: 10px;
+        font-size: 14pt;
+        line-height: 1.2em;
+        text-align: left;
+        margin-bottom: 0;
+        code {
+          margin-left: auto;
+          margin-right: auto;
+        }
+      }
+
+    }
+  }
+  pre {
+    white-space: pre-wrap;
+  }
+  #readme {
+    pre {
+      background-color: #efefef;
+      border: solid 1px darken(#efefef, 10%);
+      padding: 10px;
+      border-radius: 4px;
+      code {
+        font-family: Courier, monospace;
+      }
+    }
+    h1, h2, h3 {
+      padding-top: 1rem;
+    }
+  }
+
+  blockquote {
+    background: #f9f9f9;
+    border-left: 10px solid #ccc;
+    margin: 1.5em 10px;
+    padding: 0.5em 10px;
+    quotes: "\201C" "\201D" "\2018" "\2019";
+  }
+  blockquote:before {
+    color: #ccc;
+    content: open-quote;
+    font-size: 4em;
+    line-height: 0.1em;
+    margin-right: 0.25em;
+    vertical-align: -0.4em;
+  }
+  blockquote p {
+    display: inline;
+  }
+
+
 }

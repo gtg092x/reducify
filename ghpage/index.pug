@@ -1,7 +1,7 @@
 extends ./layout.pug
 
 block title
-    title Composite reducer tool
+    title Reducify | Make reducers with less effort
 
 block github
     a.nav-link.github(href='https://github.com/gtg092x/reducify',target="_blank")
@@ -10,8 +10,14 @@ block github
 
 block masthead
     h1.container
-        span.text Put this in your pipe and reduce it
-
+        span.mast-card
+            span.text Less effort, more reducers
+            pre
+                code.
+                    reducify({
+                       "ADD": (state, action) => state + action.data,
+                       "SUBTRACT": (state, action) => state - action.data
+                    })
 block scripts
     script.
         $('a[href="http://code.mediadrake.com/reducify"]').remove();

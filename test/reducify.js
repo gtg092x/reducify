@@ -2,7 +2,9 @@ import reducify from '../src/reducify';
 import _ from 'lodash';
 import chai from 'chai';
 
-const {assert, expect} = chai;
+const {assert} = chai;
+
+const xdescribe = _.noop;
 
 export default function () {
 
@@ -13,51 +15,48 @@ export default function () {
     {type: 'APPEND', data: 'bass'}
   ];
 
+  const testFailure = method => {
+    try {
+      method();
+      assert.fail();
+    } catch (e) {
+
+    }
+  };
 
   const checkSignature = (result) => {
-    it('should be a function', function() {
-        assert.isFunction(result);
+    it('should be a function', function () {
+      assert.isFunction(result);
     });
   };
 
-  const checkIntegrity = (reducer, defaultsTo, state) => {
-    it('should not alter a state', function() {
-        const stateCopy = _.cloneDeep(state);
-        testActions.forEach(action => reducer(state, action));
-        assert.deepEqual(stateCopy, state);
-    });
+  const checkMathOperations = (reducer, defaultValue = 0, select = _.identity) => {
 
-    it('should produce an identity when no action is passed', function() {
-        assert.deepEqual(state, reducer(state));
-    });
+    const initialState = _.isObject(defaultValue) ? {} : 0;
 
-    it('should return the default value when nothing is passed', function() {
-      assert.deepEqual(defaultsTo, reducer());
-    });
-  };
-
-  const checkMathOperations = (reducer, select = _.identity) => {
-
-    it('addition actions should work', function() {
+    it('addition actions should work', function () {
       const toAdd = 10;
-      const defaultValue = 100;
-      assert.equal(toAdd, select(reducer(0, {type: 'ADD', data: toAdd})));
-      assert.equal(defaultValue + toAdd, select(reducer(defaultValue, {type: 'ADD', data: toAdd})));
+
+      assert.equal(toAdd, select(reducer(initialState, {type: 'ADD', data: toAdd})));
+      assert.equal(select(defaultValue) + toAdd, select(reducer(defaultValue, {type: 'ADD', data: toAdd})));
     });
 
-    it('subtraction actions should work', function() {
+    it('subtraction actions should work', function () {
       const toSubtract = 10;
-      const defaultValue = 50;
-      assert.equal(0 - toSubtract, select(reducer(0, {type: 'SUBTRACT', data: toSubtract})));
-      assert.equal(defaultValue - toSubtract, select(reducer(defaultValue, {type: 'SUBTRACT', data: toSubtract})));
+
+      assert.equal(0 - toSubtract, select(reducer(initialState, {type: 'SUBTRACT', data: toSubtract})));
+      assert.equal(select(defaultValue) - toSubtract, select(reducer(defaultValue, {
+        type: 'SUBTRACT',
+        data: toSubtract
+      })));
     });
   };
 
   const checkMathOperationsEquality = (reducerOne, reducerTwo) => {
 
-    it('should have identical behavior', function() {
+    it('should have identical behavior', function () {
       const toAdd = 10;
-      const defaultValue = 100;
+      const defaultValue = {data: 100};
       const action = {type: 'ADD', data: toAdd};
       assert.deepEqual(reducerOne(defaultValue, action), reducerTwo(defaultValue, action));
       const toSubtract = 15;
@@ -66,24 +65,22 @@ export default function () {
     });
   };
 
-  const checkStringOperations = (reducer, select = _.identity) => {
+  const checkStringOperations = (reducer, defaultValue = '', select = _.identity) => {
 
-    it('reverse actions should work', function() {
-      const defaultValue = "yes";
-      assert.equal(defaultValue.split("").reverse().join(""), select(reducer(defaultValue, {type: 'REVERSE'})));
+    it('reverse actions should work', function () {
+      assert.equal(select(defaultValue).split("").reverse().join(""), select(reducer(defaultValue, {type: 'REVERSE'})));
     });
 
-    it('append actions should work', function() {
+    it('append actions should work', function () {
       const toAppend = "bar";
-      const defaultValue = "foo";
-      assert.equal(defaultValue + toAppend, select(reducer(0, {type: 'APPEND', data: toAppend})));
+      assert.equal(select(defaultValue) + toAppend, select(reducer(defaultValue, {type: 'APPEND', data: toAppend})));
     });
   };
 
   const checkStringOperationsEquality = (reducerOne, reducerTwo) => {
 
-    it('should have identical behavior', function() {
-      const defaultValue = "yes";
+    it('should have identical behavior', function () {
+      const defaultValue = {data: "yes"};
       const action = {type: 'REVERSE'};
       assert.deepEqual(reducerOne(defaultValue, action), reducerTwo(defaultValue, action));
       const toAppend = "no";
@@ -114,6 +111,22 @@ export default function () {
     }
   };
 
+  const checkIntegrity = (reducer, defaultsTo, state) => {
+    it('should not alter a state', function () {
+      const stateCopy = _.cloneDeep(state);
+      testActions.forEach(action => reducer(state, action));
+      assert.deepEqual(stateCopy, state);
+    });
+
+    it('should produce an identity when no action is passed', function () {
+      assert.deepEqual(state, reducer(state, {}));
+    });
+
+    it('should return the default value when nothing is passed', function () {
+      assert.deepEqual(defaultsTo, reducer(undefined, {}));
+    });
+  };
+
   describe('function', function () {
 
 
@@ -124,7 +137,7 @@ export default function () {
 
     const reducer2 = reducify(mathReducer);
     checkSignature(reducer2);
-    checkIntegrity(reducer2, 10, 15);
+    checkIntegrity(reducer2, 0, 15);
     checkMathOperations(reducer2);
 
     checkStringOperations(reducify(stringReducer));
@@ -137,13 +150,13 @@ export default function () {
     const reducer = reducify(arg);
 
     checkSignature(reducer);
-    checkIntegrity(reducer, {foo: 'bar'}, {foo: 'buzz'});
+    checkIntegrity(reducer, undefined, {foo: 'buzz'});
 
     const reducer2 = reducify({select: state => state, merge: (result, state) => result, reducer: mathReducer});
     checkSignature(reducer2);
-    checkIntegrity(reducer2, 10, 15);
+    checkIntegrity(reducer2, 0, 15);
     checkMathOperations(reducer2);
-    expect.fail(reducify.bind(this, {select: _.noop, reducer: _.identity}));
+    testFailure(reducify.bind(this, {select: _.noop, reducer: _.identity}));
 
     const reducer3 = reducify({select: state => state, merge: (result, state) => result, reducer: stringReducer});
     checkStringOperations(reducer3);
@@ -153,31 +166,39 @@ export default function () {
     const reducer4 = reducify(
       {
         defaultsTo,
-        select: state => state.test, merge: (result, state) => ({...state, test:result}), reducer: mathReducer
+        select: state => state.test, merge: (result, state) => ({...state, test: result}), reducer: mathReducer
       }
     );
     checkSignature(reducer4);
-    checkIntegrity(reducer4, 10, 15);
-    checkMathOperations(reducer4, selector);
+    checkIntegrity(reducer4, defaultsTo, {test: 15});
+    checkMathOperations(reducer4, defaultsTo, selector);
 
-    describe('aliases', function() {
+    describe('aliases', function () {
       checkMathOperationsEquality(
-        reducify({select: state => state.test, merge: (result, state) => ({...state, test:result}), reducer: mathReducer}),
-        reducify({$: state => state.test, _: (result, state) => ({...state, test:result}), reducer: mathReducer})
+        reducify({
+          select: state => state.test,
+          merge: (result, state) => ({...state, test: result}),
+          reducer: mathReducer
+        }),
+        reducify({$: state => state.test, _: (result, state) => ({...state, test: result}), reducer: mathReducer})
       );
     });
     defaultsTo = {test: 'foo'};
     const reducer5 = reducify(
       {
         defaultsTo,
-        select: state => state.test, merge: (result, state) => ({...state, test:result}), reducer: stringReducer
+        select: state => state.test, merge: (result, state) => ({...state, test: result}), reducer: stringReducer
       }
     );
-    checkStringOperations(reducer5, selector);
-    describe('aliases', function() {
+    checkStringOperations(reducer5, defaultsTo, selector);
+    describe('aliases', function () {
       checkMathOperationsEquality(
-        reducify({select: state => state.test, merge: (result, state) => ({...state, test:result}), reducer: stringReducer}),
-        reducify({$: state => state.test, _: (result, state) => ({...state, test:result}), reducer: stringReducer})
+        reducify({
+          select: state => state.test,
+          merge: (result, state) => ({...state, test: result}),
+          reducer: stringReducer
+        }),
+        reducify({$: state => state.test, _: (result, state) => ({...state, test: result}), reducer: stringReducer})
       );
     });
   });
@@ -192,7 +213,7 @@ export default function () {
 
     const reducer2 = reducify([state => state, (result, state) => result, mathReducer]);
     checkSignature(reducer2);
-    checkIntegrity(reducer2, 10, 15);
+    checkIntegrity(reducer2, 0, 15);
     checkMathOperations(reducer2);
 
     const reducer3 = reducify([state => state, (result, state) => result, stringReducer]);
@@ -202,38 +223,40 @@ export default function () {
 
   describe('config default array long', function () {
 
-    const defaultTo = {foo: 'bar'};
+    let defaultTo = {foo: 'bar'};
     const arg = [defaultTo, state => state, (result, state) => result, _.identity];
     const reducer = reducify(arg);
 
     checkSignature(reducer);
     checkIntegrity(reducer, defaultTo, {foo: 'buzz'});
 
+    defaultTo = {test: 10};
     const selector = (state) => state.test;
     const reducer4 = reducify(
       [
-        {test: 10},
+        defaultTo,
         state => state.test,
-        (result, state) => ({...state, test:result}),
+        (result, state) => ({...state, test: result}),
         mathReducer
       ]
     );
     checkSignature(reducer4);
-    checkIntegrity(reducer4, 10, 15);
-    checkMathOperations(reducer4, selector);
+    checkIntegrity(reducer4, defaultTo, {test: 15});
+    checkMathOperations(reducer4, defaultTo, selector);
 
+    defaultTo = {test: 'foo'};
     const reducer5 = reducify(
       [
-        {test: 'foo'},
+        defaultTo,
         state => state.test,
-        (result, state) => ({...state, test:result}),
+        (result, state) => ({...state, test: result}),
         stringReducer
       ]
     );
-    checkStringOperations(reducer5, selector);
+    checkStringOperations(reducer5, defaultTo, selector);
     // don't allow bad merge select combinations
-    expect.fail(reducify.bind(this,[defaultTo, state => state, 'oops', _.identity]));
-    expect.fail(reducify.bind(this,[state => state, _.identity]));
+    testFailure(reducify.bind(this, [defaultTo, state => state, 'oops', _.identity]));
+    testFailure(reducify.bind(this, [state => state, _.identity]));
   });
 
   describe('config object short', function () {
@@ -246,14 +269,16 @@ export default function () {
     checkSignature(reducer);
     checkIntegrity(reducer, defaultsTo, {foo: 'buzz'});
 
-    expect.fail(reducify.bind(this,{defaultsTo, select, merge: _.identity, reducer: _.identity}));
+    testFailure(reducify.bind(this, {defaultsTo, select, merge: _.identity, reducer: _.identity}));
 
     defaultsTo = {foo: 10};
     const reducer2 = reducify({select, defaultsTo, reducer: mathReducer});
     checkSignature(reducer2);
-    checkIntegrity(reducer2, {foo: 10}, {foo: 15});
-    checkMathOperations(reducer2, state => state.foo);
-    describe('aliases', function() {
+    checkIntegrity(reducer2, defaultsTo, {foo: 15});
+
+    checkMathOperations(reducer2, defaultsTo, state => state.foo);
+
+    describe('aliases', function () {
       checkMathOperationsEquality(
         reducer2,
         reducify({$: select, reducer: mathReducer, defaultsTo})
@@ -262,8 +287,8 @@ export default function () {
 
     defaultsTo = {foo: 'bar'};
     const reducer3 = reducify({defaultsTo, select, reducer: stringReducer});
-    checkStringOperations(reducer3, state => state.foo);
-    describe('aliases', function() {
+    checkStringOperations(reducer3, defaultsTo, state => state.foo);
+    describe('aliases', function () {
       checkStringOperationsEquality(
         reducer3,
         reducify({$: select, reducer: stringReducer, defaultsTo})
@@ -282,18 +307,69 @@ export default function () {
     checkSignature(reducer);
     checkIntegrity(reducer, defaultsTo, {foo: 'buzz'});
 
-    expect.fail(reducify.bind(this,[defaultsTo, select, _.identity, _.identity]));
+    testFailure(reducify.bind(this, [defaultsTo, select, _.identity, _.identity]));
 
     defaultsTo = {foo: 10};
-    const reducer2 = reducify([select, defaultsTo, mathReducer]);
+    const reducer2 = reducify([defaultsTo, select, mathReducer]);
     checkSignature(reducer2);
-    checkIntegrity(reducer2, {foo: 10}, {foo: 15});
-    checkMathOperations(reducer2, state => state.foo);
+    checkIntegrity(reducer2, defaultsTo, {foo: 15});
+    checkMathOperations(reducer2, defaultsTo, state => state.foo);
 
     defaultsTo = {foo: 'bar'};
     const reducer3 = reducify([defaultsTo, select, stringReducer]);
-    checkStringOperations(reducer3, state => state.foo);
+    checkStringOperations(reducer3, defaultsTo, state => state.foo);
 
+
+  });
+
+  describe('config object compact', function () {
+    const select = 'foo';
+    let defaultsTo = {foo: 0};
+
+    let reducer;
+    describe('plain config', function () {
+
+      reducer = reducify({
+        defaultsTo, select,
+        "ADD": (state = 0, action) => state + action.data,
+        "SUBTRACT": (state = 0, action) => state - action.data
+      });
+      checkSignature(reducer);
+      checkIntegrity(reducer, defaultsTo, {foo: 'buzz'});
+      checkMathOperations(reducer, defaultsTo, state => state.foo);
+    });
+
+    describe('mixed config', function () {
+
+      reducer = reducify({
+        defaultsTo, select,
+        "ADD": (state = 0, action) => state + action.data,
+        reducer(state = 0, action) {
+          switch (action.type) {
+            case "SUBTRACT":
+              return state - action.data;
+            default:
+              return state;
+          }
+        }
+      });
+      checkSignature(reducer);
+      checkIntegrity(reducer, defaultsTo, {foo: 'buzz'});
+      checkMathOperations(reducer, defaultsTo, state => state.foo);
+    });
+
+    describe('array config', function () {
+      reducer = reducify([
+        defaultsTo, select,
+        {
+          "ADD": (state = 0, action) => state + action.data,
+          "SUBTRACT": (state = 0, action) => state - action.data
+        }
+      ]);
+      checkSignature(reducer);
+      checkIntegrity(reducer, defaultsTo, {foo: 'buzz'});
+      checkMathOperations(reducer, defaultsTo, state => state.foo);
+    });
 
   });
 
@@ -301,12 +377,12 @@ export default function () {
     const select = 'foo';
     let defaultsTo = {foo: 'bar'};
 
-    const reducer = reducify(select, defaultsTo, mathReducer);
+    const reducer = reducify(defaultsTo, select, stringReducer);
     checkSignature(reducer);
     checkIntegrity(reducer, defaultsTo, {foo: 'buzz'});
-    checkStringOperations(reducer, state => state.foo);
+    checkStringOperations(reducer, defaultsTo, state => state.foo);
 
-    const reducer2 = reducify([select, defaultsTo, mathReducer]);
+    const reducer2 = reducify([defaultsTo, select, stringReducer]);
     checkStringOperationsEquality(
       reducer,
       reducer2
@@ -320,6 +396,73 @@ export default function () {
 
     checkSignature(reducer);
     checkIntegrity(reducer, defaultsTo, {foo: 'buzz'});
+
+  });
+
+  describe('defaults', function () {
+    const defaultsTo = 10;
+    const reducer = reducify({
+      defaultsTo,
+      reducer(state, action){
+        if (state !== defaultsTo) {
+          assert.fail();
+        }
+      }
+    });
+
+    const reducer2 = reducify({
+      reducer(state = 1, action){
+        if (state === defaultsTo) {
+          assert.fail();
+        }
+      }
+    });
+
+    it ('should handle defaults', function() {
+      reducer();
+      reducer2();
+      assert.ok(1);
+    });
+  });
+
+  describe('action partial', function () {
+    const reducer = reducify({
+      actionPart: {test: 'val'},
+      reducer(state, {test}){
+        return test;
+      }
+    });
+
+    const reducer2 = reducify({
+      actionPart(action) {
+        return {...action, test: 'val'};
+      },
+      reducer(state, {test}){
+        return test;
+      }
+    });
+
+    it ('should inject action partials', function() {
+      const result = reducer();
+
+      assert.equal(reducer(), 'val');
+      assert.equal(reducer2(), 'val');
+    });
+  });
+
+  describe('extra arguments', function () {
+
+    const reducer = reducify((state, action, foo) => {
+      if (foo === undefined || foo !== 2) {
+        assert.fail();
+      }
+    });
+
+    it("should respect extra arguments", function() {
+      reducer({}, {}, 2);
+      assert.ok(1);
+    });
+
 
   });
 }

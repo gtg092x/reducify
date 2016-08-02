@@ -1,5 +1,6 @@
 import _ from 'lodash';
 
+// UTILS
 function isNotNullFunction(arg) {
   return arg !== null && arg !== undefined && _.isFunction(arg);
 }
@@ -21,18 +22,16 @@ function normalizeArray(arr) {
   } else if (arr.length === 3) {
     [defaultsTo, select, merge] = arr;
   }
+
   if (isNotNullFunction(reducerOrActions)) {
-    return {defaultsTo, select, merge, reducer: arr};
+    return {defaultsTo, select, merge, reducer: reducerOrActions};
   } else {
     return {defaultsTo, select, merge, ...reducerOrActions};
   }
 }
 
 
-function normalizeActions(config) {
-  if (isNotNullFunction(config.reducer)) {
-    return config;
-  }
+function normalizeActions({reducer: baseReducer = _.identity, ...config}) {
   const notFn = Object.keys(config).filter(key => !isNotNullFunction(config[key]));
   const actors = _.omit(config, [...Object.keys(defaults), ...notFn]);
 
@@ -41,7 +40,7 @@ function normalizeActions(config) {
     if (actor) {
       return actor(state, action, ...args);
     }
-    return state;
+    return baseReducer(state, action, ...args);
   });
 
   return {
@@ -54,8 +53,11 @@ function injectDefaults(config) {
   return _.defaults(config, defaults);
 }
 
-function configToReducer({select, merge, reducer, defaultsTo}) {
-  return (function reducified(state = defaultsTo, action = {}, ...rest) {
+function configToReducer({select, merge, reducer, defaultsTo, actionPart = {}}) {
+  return (function reducified(state = defaultsTo, actionArg = {}, ...rest) {
+    const action = _.isFunction(actionPart)
+      ? actionPart(actionArg)
+      : {...actionPart, ...actionArg};
     const selected = select.call(this, state, action, ...rest);
     const result = reducer.call(this, selected, action, ...rest);
     return merge.call(this, result, state, action, ...rest);
@@ -65,7 +67,8 @@ function configToReducer({select, merge, reducer, defaultsTo}) {
 const defaults = {
   select: _.identity,
   merge: _.identity,
-  reducer: _.identity
+  reducer: _.identity,
+  actionPart: {}
 };
 
 function isStatic(config) {
@@ -105,7 +108,7 @@ function composeSelectMerge(config) {
   // for each key in a selector, pull that value from the state
   const select = state => {
     if (!_.isObject(state)) {
-      throw new ConfigError("Can't key select when a when state is not an object. Pass in a default object.");
+      throw new ConfigError(`Can't key select when a when state is not an object. Pass in a default object. ${JSON.stringify(state)}`);
     }
     return selector.reduce((pointer, key) => pointer[key], state);
   };
@@ -114,27 +117,26 @@ function composeSelectMerge(config) {
     ({
       ...state,
       ..._.reverse([...selector]).reduce(
-          (pointer, key) => ({[key]: pointer}),
-          result
-        )
+        (pointer, key) => ({[key]: pointer}),
+        result
+      )
     });
 
   return {select, merge};
 }
 
-function ConfigError(message) {
+function ConfigError(...messages) {
   this.name = 'Reducify Configuration Error';
-  this.message = message;
-  this.stack = (new Error()).stack;
+  this.message = messages.map(arg => _.isString(arg) ? arg : JSON.stringify(arg)).join(' ');
 }
-ConfigError.prototype = new Error;
+ConfigError.prototype = Error.prototype;
 /*
  @param reducer config
  */
 function normalizeSelect(config) {
-  let {select, merge, $, _, ...rest} = config;
-  merge = merge || _;
-  select = select || $;
+  let {select, merge, $: selectAlias, _: mergeAlias, ...rest} = config;
+  merge = merge || mergeAlias;
+  select = select || selectAlias;
   if (isNotNullFunction(select)) {
     if (!isNotNullFunction(merge)) {
       throw new ConfigError('Merge must be a function if select is a function');
@@ -157,15 +159,15 @@ function normalizeDefaults(config) {
 }
 
 /*
-  @param reducer argument - one of the steps passed to pipeline(...)
-  Returns {select<Function>, merge<Function>, reducer<Function>}
+ @param reducer argument - one of the steps passed to pipeline(...)
+ Returns {select<Function>, merge<Function>, reducer<Function>}
  */
 function reducify(...reducerArgs) {
   const scope = this;
   const reducerArgRaw = reducerArgs.length > 1 ? reducerArgs : reducerArgs[0];
   // already a reducer - not messing around with it
-  if (isNotNullFunction(reducerArg)) {
-    return reducerArg;
+  if (isNotNullFunction(reducerArgRaw)) {
+    return reducerArgRaw;
   }
   let reducerArg = normalizeArray(reducerArgRaw);
   if (isStatic(reducerArg)) {

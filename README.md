@@ -11,435 +11,453 @@ Make [Redux][] reducers with less effort.
 
 ## Usage
 
+```js
+import { createStore } from 'redux';
+import reducify from 'reducify';
+
+
+const store = createStore(
+  reducify({
+    "ADD": (state = 0, action) => state + action.data,
+    "SUBTRACT": (state = 0, action) => state - action.data
+  })
+);
+
+store.dispatch({
+   type: 'ADD',
+   data: 10
+});
+
+// State is: 10
+
+store.dispatch({
+   type: 'SUBTRACT',
+   data: 5
+});
+
+// State is: 5
+```
+
 ### Turn configurations into reducer functions  
 
 Tired of massive, unwieldly switch statements? Wish you could break up reducers into re-usable and configurable parts?
 
 > Yes, this problem is literally ruining my life.
 
-We thought so. With reducify you can create reducers with a configurations and sleep a bit easier.
+We thought so. With Reducify you can create reducers with a configurations and sleep a bit easier.
 
-## Namespacing
+## Reducers Three (and a half) Ways
 
-You might want to apply a reducer to a single state key. Well that's easy as pie.
+### Functions
+ 
+The vanilla approach. Passing in a function just spits out the same function. 
+
+If you've got your reducers all squared away we don't want to rock the boat.
+ 
+```js
+
+function myReducer(state, action) {
+    switch(action.type) {
+        // reducer stuff
+    }
+}
+
+createStore(reducify(myReducer));
+```
+
+### Configs
+ 
+If you pass in a config, we'll turn it into a reducer function. 
+
+Check out the config api reference to see what you can add.
+ 
+```js
+
+const myConfig = {
+    defaultsTo: 10
+    reducer(state, action) { // state will be 10        
+        // reducer stuff
+    }
+};
+
+createStore(reducify(myConfig));
+```
+
+### Arrays
+ 
+Passing in an array is just a short version of the config above.
+ 
+```js
+
+const myArrayConfig = [
+    10,
+    (state, action) => { // state will be 10        
+        // reducer stuff
+    }
+];
+
+createStore(reducify(myArrayConfig));
+```
+
+If you pass multiple arguments to reducify, we'll just treat it like an array (that was the half of the 3 and a half).
+
+This is the same as above.
+
+```js
+createStore(reducify(10, 
+  (state, action) => { // state will be 10        
+   // reducer stuff
+  }
+));
+```
+
+Arrays are deconstructed with the following signature:
+
+`[defaultsTo, [select, merge], reducerAndActions]`
+
+Some examples:
+
+`[10, myReducerFunction]` === `{defaultsTo: 10, reducer: myReducerFunction}`
+
+`[{myCount: 10}, 'myCount', myReducerFunction]` === `{defaultsTo: {myCount: 10}, select: 'myCount', reducer: myReducerFunction}`
+
+`[{myCount: 10}, state => state.myCount, (result, state) => {...state, myCount: result}, myReducerFunction]` 
+
+is the same as:
+
+`{defaultsTo: {myCount: 10}, select: state => state.myCount, merge: (result, state) => {...state, myCount: result}, reducer: myReducerFunction}`
+
+
+## Configuration Sugar
+
+Because we're opening the door on configuration, we get the ability to add in some user-directed magic that solves common redux boilerplate.
+
+### Action Methods
+
+This might bring out some pitchforks, but you don't need to do a switch statement for everything. If you pass in an action type that is a method, we'll run them before we run any declared reducers.
 
 ```js
 import { createStore } from 'redux';
-import pipeline from 'reducify';
+import reducify from 'reducify';
 
-// If you're going to namespace, make sure your state is an object!
-function rootReducer(state = {myNumber: 0, myBoolean: false}, action) {
-    return state;
-}
+const store = createStore(
+  reducify({
+    "INCREMENT": (state = 0, action) => state + 1,    
+    "DECRAMENT": (state = 0, action) => state - 1
+  })
+);
 
-function mathReducer(state = 0, action) {
+store.dispatch({
+   type: 'INCREMENT'
+});
+
+// State is 1
+
+store.dispatch({
+   type: 'DECREMENT'
+});
+
+// State is 0
+
+```
+
+The following is the same as above
+
+```js
+import { createStore } from 'redux';
+import reducify from 'reducify';
+
+const store = createStore(
+  function(state = 0, action) {
     switch(action.type) {
-        case "ADD":
-            return state + action.data;
+        case "INCREMENT":
+            return state + 1;
+        case "DECREMENT":
+            return state - 1;
         default:
             return state;
     }
-}
+  }
+);
 
-function toggleReducer(state = false, action) {
-    switch(action.type) {
-        case "TOGGLE":
-            return !state;
+// same as above
+
+```
+
+Nice! We went from 10 lines to 4. Not bad. 
+
+Keep in mind, this is still Redux. So don't take any shortcuts like trying to not make copies of your objects. 
+
+```js
+// GOOD
+const store = createStore(
+  reducify({
+    "ADD_PITCHFORK": (state = {pitchforks: 0}, action) => ({...state, pitchforks: state.pitchforks + 1}),    
+    "USE_PITCHFORK": (state = {pitchforks: 0}, action) => ({...state, pitchforks: state.pitchforks - 1})
+  })
+);
+
+// BAD
+const store = createStore(
+  reducify({
+    "ADD_PITCHFORK": (state = {pitchforks: 0}, action) => {
+        state.pitchforks ++;
+        return state;
+    },    
+    "USE_PITCHFORK": (state = {pitchforks: 0}, action) => {
+       state.pitchforks --;
+       return state;
+   }
+  })
+);
+```
+
+You can even combine these methods with a reducer function! The actions will always run first.
+
+```js
+import { createStore } from 'redux';
+import reducify from 'reducify';
+
+const store = createStore(
+  reducify({
+    "ADD_PITCHFORK": (state = {pitchforks: 0}, action) => ({...state, pitchforks: state.pitchforks + 1}),    
+    "USE_PITCHFORK": (state = {pitchforks: 0}, action) => ({...state, pitchforks: state.pitchforks - 1}),
+    reducer(state, action) {
+        switch(action.type) {
+            case "CLEAR_PITCHFORKS":
+                return {...state, pitchforks: 0};
+            default:
+                return state;
+        }
+    }
+  })
+);
+```
+
+*get it, you won't chase us down with pitchforks because we're letting you use switch statements too? Nevermind, sigh - moving on*
+
+### Selectors
+
+Ever dealt with mutating a large redux object? It's not a lot of fun to try and peak at your model over a massive switch statement and just hope you're getting it right.
+ 
+#### String selectors
+ 
+It's even less fun to have to deal with updating your model because Brad in product design thinks that we should go from having 1 user profile picture to 10.
+  
+*You're a jerk Brad. I ate all of the spaghetti you brought in for lunch - it was only ok.*
+
+```js
+import { createStore } from 'redux';
+import reducify from 'reducify';
+
+const store = createStore(
+  reducify({
+    defaultsTo: {username: 'Brad', hasSpaghetti: true},
+    select: 'hasSpaghetti',
+    "EAT_SPAGHETTI": (state, action) => false
+  })
+);
+
+store.dispatch({
+   type: 'EAT_SPAGHETTI'
+});
+
+// State is: {username: 'Brad', hasSpaghetti: false}
+```
+
+In the example above, we passed a string to the `select` method. The string is mapped to an object key that we automatically merge and select from.
+
+
+#### Selector Methods
+
+You can pass in select and merge methods. This would be identical to the reducer above:
+
+```js
+import { createStore } from 'redux';
+import reducify from 'reducify';
+
+const store = createStore(
+  reducify({
+    defaultsTo: {username: 'Brad', hasSpaghetti: true},
+    select: (state) => state.hasSpaghetti,
+    merge: (result, state) => ({...state, hasSpaghetti: result})
+    "EAT_SPAGHETTI": (state, action) => false
+  })
+);
+
+store.dispatch({
+   type: 'EAT_SPAGHETTI'
+});
+
+// State is: {username: 'Brad', hasSpaghetti: false}
+```
+
+And you can use some aliases - `$` for select and `_` for merge. 
+
+```js
+const store = createStore(
+  reducify({
+    defaultsTo: {username: 'Brad', hasSpaghetti: true},
+    $: 'hasSpaghetti'
+    "EAT_SPAGHETTI": (state, action) => false
+  })
+);
+
+// eating Brad's spaghetti
+
+const store = createStore(
+  reducify({
+    defaultsTo: {username: 'Brad', hasSpaghetti: true},
+    $: (state) => state.hasSpaghetti,
+    _: (result, state) => ({...state, hasSpaghetti: result})
+    "EAT_SPAGHETTI": (state, action) => false
+  })
+);
+
+// still eating Brad's spaghetti
+```
+
+#### Deep selectors
+
+If you're trying to access an object that's nested into your state, you can pass in an array and we'll traverse that path for you
+
+```js
+import { createStore } from 'redux';
+import reducify from 'reducify';
+
+const store = createStore(
+  reducify({
+    defaultsTo: {username: 'Brad', lunch: {hasSpaghetti: true}},
+    select: ['lunch', 'hasSpaghetti'],
+    "EAT_SPAGHETTI": (state, action) => false
+  })
+);
+
+store.dispatch({
+   type: 'EAT_SPAGHETTI'
+});
+
+// State is: {username: 'Brad', lunch: {hasSpaghetti: false}}
+```
+
+### Action Partials
+
+When you're declaring your reducer, you've got a chance to set some default values for all actions that go through it.
+
+```js
+import { createStore } from 'redux';
+import reducify from 'reducify';
+
+function incrementReducer(state = 0, {data = 1, ...action}) {
+    switch (action.type) {
+        case 'INCREMENT':
+            return state + data;
+        case 'DECREMENT':
+            return state - data;
         default:
             return state;
-    }    
+    }
 }
 
 const store = createStore(
-  pipeline(
-    rootReducer,    
-    {select: 'myNumber', reducer: mathReducer}, // identical to ['myNumber', mathReducer]
-    {select: 'myBoolean', reducer: toggleReducer}
-  )
+  reducify({    
+    reducer: incrementReducer,
+    actionPart: {data: 2}
+  })
 );
 
 store.dispatch({
-   type: 'ADD',
-   data: 10
+   type: 'INCREMENT'
 });
+
+// State is: 2
 
 store.dispatch({
-   type: 'TOGGLE'
+   type: 'DECREMENT'
 });
 
-// State is: {myNumber: 10, myBoolean: true}
+// State is: 0
 ```
-
-Alternatively, you can pass in select and merge methods. The following would be identical to the pipeline above:
-
-```js
-export default createStore(
-  pipeline(
-    rootReducer,    
-    {
-        select: state => state.myBoolean, 
-        merge: (result, state) => ({...state, myBoolean: result}), 
-        reducer: toggleReducer
-    }, 
-    // alternatively you can call 
-    // [state => state.myBoolean, (result, state) => ({...state, myBoolean: result}), toggleReducer]
-    {
-        select: state => state.myNumber, 
-        merge: (result, state) => ({...state, myNumber: result}), 
-        reducer: mathReducer
-    }
-  )
-);
-```
-
 
 ### Defaults
 
-If you're heavy into namespacing, defaults are a pain - just pass it in instead of a reducer.
+Just use the config option `defaultsTo`.
 
 ```js
 import { createStore } from 'redux';
-import pipeline from 'reducify';
-
-function mathReducer(state = 0, action) {
-    // ...
-}
-
-function toggleReducer(state = false, action) {
-    // ...
-}
+import reducify from 'reducify';
 
 const store = createStore(
-  pipeline(
-    {myNumber: 0, myBoolean: false}, // Just pass in an object - this will be your default state
-    {select: 'myNumber', reducer: mathReducer},
-    {select: 'myBoolean', reducer: toggleReducer}
-  )
+  reducify({    
+    defaultsTo: {myNumber: 10}, 
+    select: 'myNumber', 
+    "ADD": (state = 0, action) => state + action.data,
+    "SUBTRACT": (state = 0, action) => state - action.data    
+  })
 );
 
 store.dispatch({
    type: 'ADD',
-   data: 10
+   data: 20
 });
 
-store.dispatch({
-   type: 'TOGGLE'
-});
+// State is: {myNumber: 30}
 
-// State is: {myNumber: 10, myBoolean: true}
-```
-
-### Nesting
-
-Because we're just making reducers, you're free to do pipe all the way down!
-
-```js
-import { createStore } from 'redux';
-import pipeline from 'reducify';
-
-function mathReducer(state = 0, action) {
-    // ...
-}
-
-function toggleReducer(state = false, action) {
-    // ...
-}
-
-const store = createStore(
-  pipeline(
-    {data: {}, otherData: {}},
-    {select: 'data', reducer: pipeline(
-        {select: 'myNumber', reducer: mathReducer},
-        {select: 'myBoolean', reducer: toggleReducer}
-    )},
-    // you can use the same shortcuts when you nest
-    // this is pretty much the same thing
-    ['otherData', pipeline(
-        ['myNumber', mathReducer],
-        ['myBoolean', toggleReducer],
-    )]
-  )
-);
-
-store.dispatch({
-   type: 'ADD',
-   data: 10
-});
-
-store.dispatch({
-   type: 'TOGGLE'
-});
-
-/* 
-    State is:
-    {
-        data: {myNumber: 10, myBoolean: true},
-        otherData: {myNumber: 10, myBoolean: true}
-    }
-*/
-```
-
-### Configurable Reducers
-
-Not something you absolutely need this package for, but it makes this pattern a whole lot easier.
-
-```js
-import { createStore } from 'redux';
-import pipeline from 'reducify';
-
-function genericMathReducer({add, subtract}) {
-    return (state = 0, action) => {
-        switch(action.type) {
-            case add:
-                return state + action.data;
-            case subtract:
-                return state - action.data;
-            default:
-                return state;
-        }        
-    };    
-}
-
-const store = createStore(
-  pipeline(
-    {myNumber: 0, myOtherNumber: 0}, 
-    ['myNumber', genericMathReducer({add: 'ADD_NUMBER', subtract: 'SUBTRACT_NUMBER'})],
-    ['myOtherNumber', genericMathReducer({add: 'ADD_OTHER_NUMBER', subtract: 'SUBTRACT_OTHER_NUMBER'})]
-  )
-);
-
-store.dispatch({
-   type: 'ADD_NUMBER',
-   data: 10
-});
-
-store.dispatch({
-   type: 'SUBTRACT_OTHER_NUMBER',
-   data: 5
-});
-
-// State is: {myNumber: 10, myOtherNumber: -5}
-```
-
-### Interrupt
-
-You might want to stop the flow of the reducer chain. This is especially true if you create a generic configurable reducer but want to surpress some actions.
-
-```js
-import pipeline from 'reducify';
-
-function blockSubtract(state = 0, action, end) {
-    switch(action.type) {        
-        case "SUBTRACT":
-            // Notice we're passing state to the end method
-            return end(state);
-        default:
-            return state;
-    }
-}
-
-// Math reducer would come from a library or something
-function mathReducer(state = 0, action) {
-    switch(action.type) {
-        case "ADD":
-            return state + action.data;
-        case "SUBTRACT":
-            return state - action.data;
-        default:
-            return state;
-    }
-}
-
-const store = createStore(
-  pipeline(
-    blockSubtract, 
-    mathReducer
-  )
-);
-
-store.dispatch({
-   type: 'ADD',
-   data: 10
-});
-
-// This gets blocked
 store.dispatch({
    type: 'SUBTRACT',
    data: 5
 });
 
-// State is: 10
+// State is: {myNumber: 25}
 ```
 
-Order matters! If you put an interrupting reducer last, it won't change anything because we're doing them in order.
-
-## API
-
-### pipeline
+You will get a state with all of your reducers, so if you're relying on method signature defaults, that will get overridden.
 
 ```js
-import pipeline from 'reducify';
-pipeline([steps ...]);
-```
-
-There's only one function, but it's got a few different ways to send args in. Let's look at them all.
-
-#### Functions
-
-```js
-pipeline([<Function>...]);
-```
-
-```js
-import pipeline from 'reducify';
-
-function reducer1(state = 0, action) {
-    // ...
-}
-
-function reducer2(state = 0, action) {
-    // ...
-}
-
-export default createStore(
-  pipeline(reducer1, reducer2)
+const store = createStore(
+  reducify({    
+    defaultsTo: {myNumber: 10}, 
+    select: 'myNumber', 
+    "ADD": (state = 0, action) => state + action.data,
+    "SUBTRACT": (state = 0, action) => state - action.data    
+  })
 );
-// State is: Number
 ```
 
-Just take any regular old reducer and pass it in. You can do one reducer or you can do 100.
+### Statics
 
-#### Object Configs
-
-```js
-pipeline([{select<string>, reducer<Function>}...]);
-// or
-pipeline([{select<Function>, merge<Function>, reducer<Function>}...]);
-// don't be afraid to mix them together either
-pipeline({select<Function>, merge<Function>, reducer<Function>}, {select<string>, reducer<Function>}, <Function>);
-```
+A cousin of `defaultsTo`. Static reducers just return the state or default value regardless of action type.
 
 ```js
-import pipeline from 'reducify';
+import { createStore } from 'redux';
+import reducify from 'reducify';
 
-function rootReducer(state = {}, action) {
-    return state;
-}
-
-function reducer1(state = 0, action) {
-    // ...
-}
-
-function reducer2(state = 0, action) {
-    // ...
-}
-
-export default createStore(
-  pipeline(
-    rootReducer,
-    {select: 'paramOne' ,reducer: reducer1}, 
-    {select: state => state.paramTwo, merge: (result, state) => ({...state, paramTwo: result}), reducer: reducer2}
-  )
+const store = createStore(
+  reducify({    
+    foo: 'bar'    
+  })
 );
-// State is: {paramOne<Number>, paramTwo<Number>}
+
+store.dispatch({
+   type: 'ADD',
+   data: 20
+});
+
+// State is: {foo: 'bar'}
+
+store.dispatch({
+   type: 'SUBTRACT',
+   data: 5
+});
+
+// State is: {foo: 'bar'}
 ```
 
-If your reducer is changing keys on an object, make sure you have a root reducer or a default value! Look at the `select` example above if this seems crazy.
-
-#### Arrays
-
-```js
-pipeline([[<string>, <Function>]...]); // identical to {select<string>, reducer<Function>}
-// or
-pipeline([[<Function>, <Function>, <Function>]...]); // identical to {select<Function>, merge<Function>, reducer<Function>}
-// you can mix these together too
-```
-
-```js
-import pipeline from 'reducify';
-
-function rootReducer(state = {}, action) {
-    return state;
-}
-
-function reducer1(state = 0, action) {
-    // ...
-}
-
-function reducer2(state = 0, action) {
-    // ...
-}
-
-export default createStore(
-  pipeline(
-    rootReducer,
-    ['paramOne', reducer1], 
-    [state => state.paramTwo, (result, state) => ({...state, paramTwo: result}), reducer: reducer2]
-  )
-);
-// State is: {paramOne<Number>, paramTwo<Number>}
-```
-
-This really just maps the array to the configs above. It gets pretty useful if you're nesting reducers.
-
-#### Defaults
-
-```js
-pipeline([<Object>...]); // identical to (state = <Object>) => state
-```
-
-Adding that root reducer just for a default seemed kind of excessive, so if you pass in an object that doesn't match a config signature, we'll use it as a default.
-
-```js
-import pipeline from 'reducify';
-
-function reducer1(state = 0, action) {
-    // ...
-}
-
-function reducer2(state = 0, action) {
-    // ...
-}
-
-export default createStore(
-  pipeline(
-    {foo: 'bar'},
-    ['paramOne', reducer1], 
-    [state => state.paramTwo, (result, state) => ({...state, paramTwo: result}), reducer: reducer2]
-  )
-);
-// State is: {paramOne<Number>, paramTwo<Number>, foo: 'bar'}
-```
-
-Of course, if you decide to have a reducer with default values that include a string named `select` and a function named `reducer`, this obviously won't work. But let's be honest, that sounds like a silly thing to do. 
-
-If you find yourself in that situation, just use a root reducer that sets those defaults instead - more boilerplate for you.
-
-### debugPipeline
-
-```js
-import {debugPipeline} from 'reducify';
-pipeline([steps ...]);
-```
-
-Same as the default pipeline function, just with a lot of console noise.
-
-
-## Native
-
-### This works with React Native too
-
-Nothing special - use it like any other redux package. Check the examples if you don't believe me.
-
-## Combine Stores
-
-> Do I have to do anything special to use `combineStores`?
-
-No - these are just reducers after all.
+Pass in a plain object or value and that's what you'll get back every time. Good for mocking and some plugins.
 
 ## Credits
 
-Redux Pipeline is free software under the MIT license. It was created in sunny Santa Monica by [Matthew Drake][].
+Reducify is free software under the MIT license. It was created in sunny Santa Monica by [Matthew Drake][].
 
 [Redux]: https://github.com/reactjs/redux
 [Matthew Drake]: http://www.mediadrake.com
