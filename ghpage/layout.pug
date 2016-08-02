@@ -8,6 +8,7 @@ html(lang="en")
         meta(charset="UTF-8")
 
     body
+        block analytics
         div#root
             div.nav.nav-inline.navbar-light.bg-faded
                 nav.container.navbar-nav
@@ -23,7 +24,8 @@ html(lang="en")
                 div#example
             div.container#readme
                 include:marked ./../README.md
-        script(src="./examples/web/js/ghpage.js")
+        block example
+            script(src="./examples/web/js/ghpage.js")
         script(src="https://code.jquery.com/jquery-2.2.4.min.js",integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=",crossorigin="anonymous")
         script(src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/js/bootstrap.min.js",integrity="sha384-vZ2WRJMwsjRMW/8U7i6PWi6AlO1L79snBrmgiDpgIWJ82z8eA5lenwvxbMV1PAh7",crossorigin="anonymous")
         block scripts
