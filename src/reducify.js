@@ -162,9 +162,9 @@ function normalizeDefaults(config) {
  @param reducer argument - one of the steps passed to pipeline(...)
  Returns {select<Function>, merge<Function>, reducer<Function>}
  */
-function reducify(...reducerArgs) {
+function reducify(reducerArgRaw) {
   const scope = this;
-  const reducerArgRaw = reducerArgs.length > 1 ? reducerArgs : reducerArgs[0];
+
   // already a reducer - not messing around with it
   if (isNotNullFunction(reducerArgRaw)) {
     return reducerArgRaw;

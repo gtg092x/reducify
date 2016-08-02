@@ -1,7 +1,9 @@
-Reducify
+# Reducify [![Build Status](https://travis-ci.org/gtg092x/reducify.svg?branch=master)](https://travis-ci.org/gtg092x/reducify)
 ================
 
 Make [Redux][] reducers with less effort.
+
+[![NPM](https://nodei.co/npm/reducify.png?downloads=true&stars=true)](https://nodei.co/npm/reducify/)
 
 <http://code.mediadrake.com/reducify>
 
@@ -46,7 +48,7 @@ Tired of massive, unwieldly switch statements? Wish you could break up reducers 
 
 We thought so. With Reducify you can create reducers with a configurations and sleep a bit easier.
 
-## Reducers Three (and a half) Ways
+## Reducers Made Three Ways
 
 ### Functions
  
@@ -99,17 +101,6 @@ const myArrayConfig = [
 createStore(reducify(myArrayConfig));
 ```
 
-If you pass multiple arguments to reducify, we'll just treat it like an array (that was the half of the 3 and a half).
-
-This is the same as above.
-
-```js
-createStore(reducify(10, 
-  (state, action) => { // state will be 10        
-   // reducer stuff
-  }
-));
-```
 
 Arrays are deconstructed with the following signature:
 
