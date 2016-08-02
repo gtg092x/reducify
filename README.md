@@ -5,7 +5,7 @@ Make [Redux][] reducers with less effort.
 
 [![NPM](https://nodei.co/npm/reducify.png?downloads=true&stars=true)](https://nodei.co/npm/reducify/)
 
-<http://code.mediadrake.com/reducify>
+<http://reducify.mediadrake.com/>
 
 ## Installation
 
