@@ -478,7 +478,8 @@ pre {
 #readme p code {
   background-color: #efefef;
   border: solid 1px #d6d6d6;
-  padding: 10px;
+  padding: 4px;
+  margin: 0 4px;
   border-radius: 4px;
   font-family: Courier, monospace;
 }
