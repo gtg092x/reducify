@@ -478,7 +478,11 @@ pre {
 #readme h1,
 #readme h2,
 #readme h3 {
-  padding-top: 1rem;
+  padding-top: 1.5em;
+}
+#readme h1,
+#readme h2 {
+  border-bottom: solid 1px rgba(51, 52, 68, 0.27);
 }
 blockquote {
   background: #f9f9f9;

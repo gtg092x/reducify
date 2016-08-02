@@ -159,6 +159,7 @@
 }
 
 .ghpage(@maincolor, @altcolor) {
+  @text-color: fade(contrast(@bg-color), 87%);
   .hero {
     background-color: @maincolor;
   }
@@ -236,7 +237,6 @@
     background-color: @bg-color;
     .gradient(@bg-color, darken(@bg-color, 10%));
 
-    @text-color: fade(contrast(@bg-color), 87%);
     color: @text-color;
 
 
@@ -292,7 +292,10 @@
       }
     }
     h1, h2, h3 {
-      padding-top: 1rem;
+      padding-top: 1.5em;
+    }
+    h1, h2 {
+      border-bottom: solid 1px fade(@maincolor, 27%);
     }
   }
 
