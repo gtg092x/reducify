@@ -38,7 +38,7 @@ store.dispatch({
 <p>Yes, this problem is literally ruining my life.</p>
 </blockquote>
 <p>We thought so. With Reducify you can create reducers with a configurations and sleep a bit easier.</p>
-<h2 id="reducers-three-and-a-half-ways">Reducers Three (and a half) Ways</h2>
+<h2 id="reducers-made-three-ways">Reducers Made Three Ways</h2>
 <h3 id="functions">Functions</h3>
 <p>The vanilla approach. Passing in a function just spits out the same function. </p>
 <p>If you&#39;ve got your reducers all squared away we don&#39;t want to rock the boat.</p>
@@ -75,14 +75,6 @@ const myArrayConfig = [
 ];
 
 createStore(reducify(myArrayConfig));
-</code></pre>
-<p>If you pass multiple arguments to reducify, we&#39;ll just treat it like an array (that was the half of the 3 and a half).</p>
-<p>This is the same as above.</p>
-<pre><code class="lang-js">createStore(reducify(10, 
-  (state, action) =&gt; { // state will be 10        
-   // reducer stuff
-  }
-));
 </code></pre>
 <p>Arrays are deconstructed with the following signature:</p>
 <p><code>[defaultsTo, [select, merge], reducerAndActions]</code></p>

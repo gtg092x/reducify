@@ -373,23 +373,6 @@ export default function () {
 
   });
 
-  describe('config arg spread', function () {
-    const select = 'foo';
-    let defaultsTo = {foo: 'bar'};
-
-    const reducer = reducify(defaultsTo, select, stringReducer);
-    checkSignature(reducer);
-    checkIntegrity(reducer, defaultsTo, {foo: 'buzz'});
-    checkStringOperations(reducer, defaultsTo, state => state.foo);
-
-    const reducer2 = reducify([defaultsTo, select, stringReducer]);
-    checkStringOperationsEquality(
-      reducer,
-      reducer2
-    );
-
-  });
-
   describe('statics', function () {
     const defaultsTo = {foo: 'bar'};
     const reducer = reducify(defaultsTo);
