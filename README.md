@@ -56,7 +56,6 @@ The vanilla approach. Passing in a function just spits out the same function.
 If you've got your reducers all squared away we don't want to rock the boat.
  
 ```js
-
 function myReducer(state, action) {
     switch(action.type) {
         // reducer stuff
@@ -73,7 +72,6 @@ If you pass in a config, we'll turn it into a reducer function.
 Check out the config api reference to see what you can add.
  
 ```js
-
 const myConfig = {
     defaultsTo: 10
     reducer(state, action) { // state will be 10        
@@ -89,7 +87,6 @@ createStore(reducify(myConfig));
 Passing in an array is just a short version of the config above.
  
 ```js
-
 const myArrayConfig = [
     10,
     (state, action) => { // state will be 10        
@@ -108,7 +105,6 @@ Arrays are deconstructed with the following signature:
 Some examples:
 
 ```js
-
 // No Select
 
 [10, myReducerFunction] 

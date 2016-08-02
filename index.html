@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><title>Reducify | Make reducers with less effort</title><link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous"><link href="./ghpage.css" rel="stylesheet"><script src="https://use.fontawesome.com/9237579915.js"></script><meta charset="UTF-8"></head><body><script>(function (i, s, o, g, r, a, m) {
+<!DOCTYPE html><html lang="en"><head><title>Reducify | Make reducers with less effort</title><link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous"><link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.5.1/themes/prism.min.css" rel="stylesheet"><link href="./ghpage.css" rel="stylesheet"><script src="https://use.fontawesome.com/9237579915.js"></script><meta charset="UTF-8"></head><body><script>(function (i, s, o, g, r, a, m) {
     i['GoogleAnalyticsObject'] = r;
     i[r] = i[r] || function () {
                 (i[r].q = i[r].q || []).push(arguments)
@@ -57,8 +57,7 @@ store.dispatch({
 <h3 id="functions">Functions</h3>
 <p>The vanilla approach. Passing in a function just spits out the same function. </p>
 <p>If you&#39;ve got your reducers all squared away we don&#39;t want to rock the boat.</p>
-<pre><code class="lang-js">
-function myReducer(state, action) {
+<pre><code class="lang-js">function myReducer(state, action) {
     switch(action.type) {
         // reducer stuff
     }
@@ -69,8 +68,7 @@ createStore(reducify(myReducer));
 <h3 id="configs">Configs</h3>
 <p>If you pass in a config, we&#39;ll turn it into a reducer function. </p>
 <p>Check out the config api reference to see what you can add.</p>
-<pre><code class="lang-js">
-const myConfig = {
+<pre><code class="lang-js">const myConfig = {
     defaultsTo: 10
     reducer(state, action) { // state will be 10        
         // reducer stuff
@@ -81,8 +79,7 @@ createStore(reducify(myConfig));
 </code></pre>
 <h3 id="arrays">Arrays</h3>
 <p>Passing in an array is just a short version of the config above.</p>
-<pre><code class="lang-js">
-const myArrayConfig = [
+<pre><code class="lang-js">const myArrayConfig = [
     10,
     (state, action) =&gt; { // state will be 10        
         // reducer stuff
@@ -94,8 +91,7 @@ createStore(reducify(myArrayConfig));
 <p>Arrays are deconstructed with the following signature:</p>
 <p><code>[defaultsTo, [select, merge], reducerAndActions]</code></p>
 <p>Some examples:</p>
-<pre><code class="lang-js">
-// No Select
+<pre><code class="lang-js">// No Select
 
 [10, myReducerFunction] 
 
@@ -402,4 +398,4 @@ store.dispatch({
 <p>Pass in a plain object or value and that&#39;s what you&#39;ll get back every time. Good for mocking and some plugins.</p>
 <h2 id="credits">Credits</h2>
 <p>Reducify is free software under the MIT license. It was created in sunny Santa Monica by <a href="http://www.mediadrake.com">Matthew Drake</a>.</p>
-</div></div><!-- empty--><script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/js/bootstrap.min.js" integrity="sha384-vZ2WRJMwsjRMW/8U7i6PWi6AlO1L79snBrmgiDpgIWJ82z8eA5lenwvxbMV1PAh7" crossorigin="anonymous"></script><script>$('a[href="http://reducify.mediadrake.com/"]').remove();</script></body></html>
+</div></div><!-- empty--><script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/js/bootstrap.min.js" integrity="sha384-vZ2WRJMwsjRMW/8U7i6PWi6AlO1L79snBrmgiDpgIWJ82z8eA5lenwvxbMV1PAh7" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.5.1/prism.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.5.1/components/prism-javascript.min.js"></script><script>$('a[href="http://reducify.mediadrake.com/"]').remove();</script></body></html>
