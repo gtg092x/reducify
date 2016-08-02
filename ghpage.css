@@ -463,11 +463,22 @@ body {
   margin-left: auto;
   margin-right: auto;
 }
+.masthead .container pre code[class*=language-] {
+  white-space: pre-wrap;
+}
 .masthead .container pre code .token.operator {
   background: transparent;
 }
 pre {
   white-space: pre-wrap;
+}
+#readme a[href*="https://nodei.co"] {
+  overflow: hidden;
+  display: block;
+  width: 100%;
+}
+#readme a[href*="https://nodei.co"] img {
+  max-width: 100%;
 }
 #readme pre {
   background-color: #efefef;

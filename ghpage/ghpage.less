@@ -271,6 +271,9 @@
         text-align: left;
         margin-bottom: 0;
         code {
+          &[class*=language-] {
+            white-space: pre-wrap;
+          }
           .token.operator {
             background: transparent;
           }
@@ -285,6 +288,14 @@
     white-space: pre-wrap;
   }
   #readme {
+    a[href*="https://nodei.co"] {
+      overflow: hidden;
+      display: block;
+      width: 100%;
+      img {
+        max-width: 100%;
+      }
+    }
     pre {
       background-color: #efefef;
       border: solid 1px darken(#efefef, 10%);
