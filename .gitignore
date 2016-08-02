@@ -41,6 +41,4 @@ jspm_packages
 
 examples/**/node_modules
 
-lib/
-
 test/scratch.js
