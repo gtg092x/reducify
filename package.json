@@ -1,21 +1,13 @@
 {
   "name": "reducify",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Make reducers with less effort.",
   "main": "lib/reducify.js",
   "scripts": {
-    "test": "./node_modules/.bin/cross-env BABEL_ENV=commonjs ./node_modules/.bin/mocha --compilers js:babel-register --recursive",
-    "compile": "./node_modules/.bin/babel --source-maps inline --optional runtime -d lib/ src/",
+    "test": "./node_modules/.bin/cross-env BABEL_ENV=compile ./node_modules/.bin/mocha --compilers js:babel-register --recursive",
+    "compile": "BABEL_ENV=compile ./node_modules/.bin/babel --source-maps inline --optional runtime -d lib/ src/",
     "prepublish": "npm run compile",
     "ghpage": "lessc ghpage/style.less ghpage.css && pug ./ghpage/index.pug --out ./"
-  },
-  "babel": {
-    "presets": [
-      "es2015",
-      "stage-0",
-      "stage-1",
-      "stage-2"
-    ]
   },
   "nyc": {
     "exclude": [
@@ -44,6 +36,7 @@
     "babel-cli": "^6.6.5",
     "babel-core": "^6.7.2",
     "babel-loader": "^6.2.4",
+    "babel-plugin-transform-object-rest-spread": "^6.8.0",
     "babel-plugin-transform-runtime": "^6.12.0",
     "babel-polyfill": "^6.9.1",
     "babel-preset-es2015": "^6.9.0",
@@ -58,8 +51,8 @@
     "eslint-config-airbnb": "^9.0.1",
     "eslint-config-prometheusresearch": "^0.2.0",
     "eslint-plugin-import": "^1.8.1",
-    "jsdom": "^6.3.0",
     "git-hooks": "^1.1.0",
+    "jsdom": "^6.3.0",
     "jstransformer-marked": "^1.0.1",
     "mocha": "^2.5.3",
     "node-libs-browser": "^1.0.0",
